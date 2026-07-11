@@ -1,0 +1,123 @@
+@import "tailwindcss";
+
+/*
+ * Design identity: "operator console" — inspired by Linear's density and
+ * restraint, Vercel's monochrome-plus-one-accent discipline, and Stripe's
+ * confident data typography. Dark by default because this is a tool for
+ * someone importing data repeatedly, not a marketing surface — matches
+ * the archetype of the audience (an ops/sales-admin persona running
+ * imports, often for extended sessions).
+ *
+ * Signature interaction: the staged progress rail in ProgressStages —
+ * a segmented, filling rail with a live batch counter, not a generic
+ * spinner.
+ */
+
+:root {
+  --background: #0a0a0c;
+  --surface: #0f0f13;
+  --surface-raised: #16161c;
+  --border: #232329;
+  --border-hover: #2e2e37;
+  --foreground: #eaeaef;
+  --muted: #8b8b96;
+  --muted-2: #5c5c68;
+
+  --accent: #6c5cff;
+  --accent-hover: #7d6fff;
+  --accent-muted: #1d1a3d;
+
+  --success: #33d69f;
+  --success-muted: #0f2a22;
+  --warning: #f5a623;
+  --warning-muted: #2e2410;
+  --danger: #f5566c;
+  --danger-muted: #2e1418;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "SF Mono", "JetBrains Mono", ui-monospace, "Cascadia Code", monospace;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-border: var(--border);
+  --color-border-hover: var(--border-hover);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-2: var(--muted-2);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-muted: var(--accent-muted);
+  --color-success: var(--success);
+  --color-success-muted: var(--success-muted);
+  --color-warning: var(--warning);
+  --color-warning-muted: var(--warning-muted);
+  --color-danger: var(--danger);
+  --color-danger-muted: var(--danger-muted);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background:
+    radial-gradient(1200px 600px at 50% -10%, rgba(108, 92, 255, 0.08), transparent 60%),
+    var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-feature-settings: "cv11", "ss01";
+}
+
+::selection {
+  background: var(--accent-muted);
+  color: var(--foreground);
+}
+
+/* Thin, unobtrusive scrollbars — matches the dense-tool identity */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-hover) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--border-hover);
+  border-radius: 999px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+@keyframes rail-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
