@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { InlineAlert } from "@/components/ui/inline-alert";
+import { ImportFromUrlDialog } from "@/components/importer/import-from-url-dialog";
 import {
   isParseError,
   parseCsvFile,
@@ -39,6 +40,7 @@ function formatBytes(bytes: number): string {
 export function Dropzone({ onParsed }: DropzoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [selection, setSelection] = useState<SelectionState>({ status: "idle" });
+  const [urlDialogMode, setUrlDialogMode] = useState<"google-sheets" | "generic-url" | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFiles = useCallback(
@@ -206,10 +208,10 @@ export function Dropzone({ onParsed }: DropzoneProps) {
         )}
       </AnimatePresence>
 
-      {/* Alternate import sources — visually planned, not yet built. Marked
-          "Soon" and disabled rather than wired to a fake success state:
-          a button that looks functional but silently does nothing is
-          worse than one that's honestly unavailable. */}
+      {/* Alternate import sources — real, working imports. Both funnel
+          through the same server-side fetch + SSRF guard, and the exact
+          same parseCsvText validation path a local file upload goes
+          through, so there's one trusted codepath regardless of source. */}
       <div className="mt-8 flex items-center gap-3" aria-hidden="true">
         <div className="h-px flex-1 bg-border" />
         <span className="text-[11px] text-muted-2">or</span>
@@ -219,31 +221,30 @@ export function Dropzone({ onParsed }: DropzoneProps) {
       <div className="mt-4 grid sm:grid-cols-2 gap-3">
         <button
           type="button"
-          disabled
-          aria-disabled="true"
-          title="Coming soon"
-          className="relative flex items-center justify-center gap-2 rounded-[var(--radius-md)] border border-border bg-surface px-4 h-11 text-[13px] font-medium text-muted-2 cursor-not-allowed"
+          onClick={() => setUrlDialogMode("google-sheets")}
+          className="flex items-center justify-center gap-2 rounded-[var(--radius-md)] border border-border hover:border-border-hover bg-surface px-4 h-11 text-[13px] font-medium text-foreground transition-colors"
         >
-          <FileText className="size-4" />
+          <FileText className="size-4 text-muted" />
           Import from Google Sheets
-          <span className="absolute top-1.5 right-2 rounded-full bg-surface-raised border border-border px-1.5 py-0.5 text-[9px] text-muted-2 tracking-wide">
-            SOON
-          </span>
         </button>
         <button
           type="button"
-          disabled
-          aria-disabled="true"
-          title="Coming soon"
-          className="relative flex items-center justify-center gap-2 rounded-[var(--radius-md)] border border-border bg-surface px-4 h-11 text-[13px] font-medium text-muted-2 cursor-not-allowed"
+          onClick={() => setUrlDialogMode("generic-url")}
+          className="flex items-center justify-center gap-2 rounded-[var(--radius-md)] border border-border hover:border-border-hover bg-surface px-4 h-11 text-[13px] font-medium text-foreground transition-colors"
         >
-          <Link2 className="size-4" />
+          <Link2 className="size-4 text-muted" />
           Import from URL
-          <span className="absolute top-1.5 right-2 rounded-full bg-surface-raised border border-border px-1.5 py-0.5 text-[9px] text-muted-2 tracking-wide">
-            SOON
-          </span>
         </button>
       </div>
+
+      {urlDialogMode && (
+        <ImportFromUrlDialog
+          open={Boolean(urlDialogMode)}
+          mode={urlDialogMode}
+          onClose={() => setUrlDialogMode(null)}
+          onParsed={onParsed}
+        />
+      )}
 
       <div className="mt-4 flex justify-center">
         <a

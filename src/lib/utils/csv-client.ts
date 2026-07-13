@@ -36,6 +36,26 @@ export function validateFileBeforeParse(file: File): CsvParseError | null {
   return null;
 }
 
+/** Shared post-parse validation — same rules regardless of whether the
+ * CSV came from a local file, a pasted URL, or a Google Sheet. */
+function validateParsedResult(
+  headers: string[],
+  data: Record<string, unknown>[]
+): CsvParseError | null {
+  if (headers.length === 0) {
+    return { message: "Couldn't detect any column headers in this file." };
+  }
+  if (data.length === 0) {
+    return { message: "This CSV has headers but no data rows." };
+  }
+  if (data.length > UPLOAD_LIMITS.maxRows) {
+    return {
+      message: `This CSV has ${data.length} rows, which exceeds the ${UPLOAD_LIMITS.maxRows}-row limit per import.`,
+    };
+  }
+  return null;
+}
+
 export function parseCsvFile(file: File): Promise<ParsedCsv | CsvParseError> {
   // Offload parsing to a worker thread for anything non-trivial in size —
   // Papa Parse's main-thread mode is fine for small files, but a
@@ -53,21 +73,9 @@ export function parseCsvFile(file: File): Promise<ParsedCsv | CsvParseError> {
       transformHeader: (header) => header.trim(),
       complete: (results) => {
         const headers = (results.meta.fields ?? []).map((h) => h.trim()).filter(Boolean);
-
-        if (headers.length === 0) {
-          resolve({ message: "Couldn't detect any column headers in this file." });
-          return;
-        }
-
-        if (results.data.length === 0) {
-          resolve({ message: "This CSV has headers but no data rows." });
-          return;
-        }
-
-        if (results.data.length > UPLOAD_LIMITS.maxRows) {
-          resolve({
-            message: `This CSV has ${results.data.length} rows, which exceeds the ${UPLOAD_LIMITS.maxRows}-row limit per import.`,
-          });
+        const error = validateParsedResult(headers, results.data);
+        if (error) {
+          resolve(error);
           return;
         }
 
@@ -79,6 +87,41 @@ export function parseCsvFile(file: File): Promise<ParsedCsv | CsvParseError> {
         });
       },
       error: (error) => {
+        resolve({ message: `Failed to parse CSV: ${error.message}` });
+      },
+    });
+  });
+}
+
+/**
+ * Parses raw CSV text already fetched by the server (Import from URL /
+ * Google Sheets flows) through the exact same header/row rules as a
+ * local file upload, so there's one validated codepath for "what counts
+ * as an importable CSV" regardless of source.
+ */
+export function parseCsvText(text: string, fileName: string): Promise<ParsedCsv | CsvParseError> {
+  return new Promise((resolve) => {
+    Papa.parse<Record<string, unknown>>(text, {
+      header: true,
+      skipEmptyLines: "greedy",
+      dynamicTyping: false,
+      transformHeader: (header) => header.trim(),
+      complete: (results) => {
+        const headers = (results.meta.fields ?? []).map((h) => h.trim()).filter(Boolean);
+        const error = validateParsedResult(headers, results.data);
+        if (error) {
+          resolve(error);
+          return;
+        }
+
+        resolve({
+          headers,
+          rows: results.data,
+          fileName,
+          fileSizeBytes: new Blob([text]).size,
+        });
+      },
+      error: (error: Error) => {
         resolve({ message: `Failed to parse CSV: ${error.message}` });
       },
     });

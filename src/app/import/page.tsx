@@ -10,10 +10,13 @@ import { PreviewTable } from "@/components/importer/preview-table";
 import { ProgressStages } from "@/components/importer/progress-stages";
 import { ResultsSummary } from "@/components/importer/results-summary";
 import { ResultsTable, DownloadAllHint } from "@/components/importer/results-table";
+import { ImportHistoryPanel } from "@/components/importer/import-history-panel";
+import { HelpPanel } from "@/components/importer/help-panel";
 import { InlineAlert } from "@/components/ui/inline-alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getRetryableSkippedRecords, mergeRetryResult } from "@/lib/utils/retry";
+import { addImportHistoryEntry } from "@/lib/utils/history";
 import type { ParsedCsv } from "@/lib/utils/csv-client";
 import type { ImportResult, ImportStage, ImportStreamEvent, MappedRecord } from "@/lib/types/crm";
 
@@ -69,6 +72,9 @@ export default function Home() {
   const [result, setResult] = useState<ImportResult | null>(null);
   const [pipelineError, setPipelineError] = useState<string | null>(null);
   const [isRetrying, setIsRetrying] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
 
   const [stage, setStage] = useState<ImportStage>("uploading");
   const [progress, setProgress] = useState(0);
@@ -139,6 +145,8 @@ export default function Home() {
         setStep("results");
         const { importedRecords, skippedRecords } = (finalResult as ImportResult).stats;
         toast.success(`Imported ${importedRecords} record(s), skipped ${skippedRecords}.`);
+        addImportHistoryEntry(data.fileName, (finalResult as ImportResult).stats);
+        setHistoryRefreshKey((k) => k + 1);
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error during import.";
@@ -245,18 +253,16 @@ export default function Home() {
           <div className="flex items-center gap-4">
             <button
               type="button"
-              disabled
-              title="Coming soon"
-              className="hidden sm:flex items-center gap-1.5 text-[12.5px] text-muted-2 cursor-not-allowed"
+              onClick={() => setIsHistoryOpen(true)}
+              className="hidden sm:flex items-center gap-1.5 text-[12.5px] text-muted hover:text-foreground transition-colors"
             >
               <History className="size-3.5" />
               Import History
             </button>
             <button
               type="button"
-              disabled
-              title="Coming soon"
-              className="hidden sm:flex items-center gap-1.5 text-[12.5px] text-muted-2 cursor-not-allowed"
+              onClick={() => setIsHelpOpen(true)}
+              className="hidden sm:flex items-center gap-1.5 text-[12.5px] text-muted hover:text-foreground transition-colors"
             >
               <HelpCircle className="size-3.5" />
               Help
@@ -407,6 +413,13 @@ export default function Home() {
           )}
         </AnimatePresence>
       </main>
+
+      <ImportHistoryPanel
+        open={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        refreshKey={historyRefreshKey}
+      />
+      <HelpPanel open={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
     </div>
   );
 }
