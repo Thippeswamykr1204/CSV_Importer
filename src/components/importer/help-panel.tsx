@@ -20,7 +20,7 @@ const FAQ = [
   },
   {
     q: "What does \"skipped\" mean in my results?",
-    a: "A row is skipped when it has neither an email nor a phone number — GrowEasy CRM requires at least one to create a lead. Skipped rows can be corrected inline on the results screen instead of being lost.",
+    a: "A row is skipped when it has neither an email nor a phone number — ImportCSV Pro requires at least one to create a lead. Skipped rows can be corrected inline on the results screen instead of being lost.",
   },
   {
     q: "Why did some rows fail and how do I fix them?",
@@ -42,7 +42,7 @@ export function HelpPanel({ open, onClose }: HelpPanelProps) {
       open={open}
       onClose={onClose}
       title="Help"
-      description="Common questions about importing with GrowEasy."
+      description="Common questions about importing with ImportCSV Pro."
       widthClassName="max-w-lg"
     >
       <div className="space-y-4">

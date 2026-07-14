@@ -6,7 +6,7 @@ import { CRM_STATUS_VALUES, DATA_SOURCE_VALUES } from "@/lib/types/crm";
  * Deliberately kept separate from ai-mapper.service.ts. Prompts are a
  * product surface, not an implementation detail — they need to be
  * readable, versionable, and testable independent of the HTTP/SDK
- * plumbing that sends them. If GrowEasy ever swaps model providers, this
+ * plumbing that sends them. If ImportCSV Pro ever swaps model providers, this
  * file is the only one that should need to change.
  *
  * Structure follows a system / developer / user split:
@@ -104,9 +104,9 @@ Output:
 `.trim();
 
 export function buildSystemPrompt(): string {
-  return `You are the data-mapping engine inside GrowEasy CRM's AI CSV Importer.
+  return `You are the data-mapping engine inside ImportCSV Pro's AI CSV Importer.
 
-Your ONLY job: read arbitrary CSV rows exported from any external system (Facebook Lead Ads, Google Ads, HubSpot, Salesforce, Zoho, Excel, Google Sheets, real-estate CRMs, hand-built spreadsheets, etc.) and map each row into GrowEasy's fixed CRM schema.
+Your ONLY job: read arbitrary CSV rows exported from any external system (Facebook Lead Ads, Google Ads, HubSpot, Salesforce, Zoho, Excel, Google Sheets, real-estate CRMs, hand-built spreadsheets, etc.) and map each row into ImportCSV Pro's fixed CRM schema.
 
 You infer meaning from column CONTENT and semantics, never from exact header name matches. Header names vary wildly across sources; treat them as hints, not ground truth. For example "Phone", "Mobile", "Mobile Number", "Telephone", "Primary Contact", "Customer Number", "WhatsApp", "Contact Number", and "Cell" all refer to the same concept and must map to mobile_without_country_code.
 
@@ -119,7 +119,7 @@ CRITICAL OUTPUT CONTRACT:
 }
 
 export function buildDeveloperPrompt(): string {
-  return `## Target schema (GrowEasy CRM record)
+  return `## Target schema (ImportCSV Pro CRM record)
 
 Every mapped record has exactly these fields (all nullable unless stated):
 
@@ -174,7 +174,7 @@ export function buildUserPrompt(headers: string[], rows: RawRow[]): string {
     rows: rows.map((r) => ({ rowIndex: r.rowIndex, data: r.data })),
   };
 
-  return `Map the following ${rows.length} CSV row(s) to the GrowEasy CRM schema. Remember: output strict JSON only, matching the required response shape, with exactly one item per row below.
+  return `Map the following ${rows.length} CSV row(s) to the ImportCSV Pro CRM schema. Remember: output strict JSON only, matching the required response shape, with exactly one item per row below.
 
 ${JSON.stringify(payload, null, 2)}`;
 }

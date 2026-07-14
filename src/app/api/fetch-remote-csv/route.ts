@@ -1,8 +1,8 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
-import { assertSafeRemoteUrl } from "@/lib/security/url-fetch-guard";
+import { assertSafeRemoteUrl, createGuardedDispatcher } from "@/lib/security/url-fetch-guard";
 import { toGoogleSheetsCsvExportUrl } from "@/lib/utils/google-sheets";
-import { checkRateLimit } from "@/lib/security/sanitize";
+import { checkRateLimit, getClientIdentifier } from "@/lib/security/sanitize";
 import { UPLOAD_LIMITS } from "@/lib/validators/schemas";
 
 export const runtime = "nodejs";
@@ -30,7 +30,7 @@ const FETCH_TIMEOUT_MS = 10_000;
  * validated by content-type before being trusted as CSV text.
  */
 export async function POST(req: NextRequest) {
-  const identifier = req.headers.get("x-forwarded-for") ?? "anonymous";
+  const identifier = getClientIdentifier(req.headers);
   const rateLimit = checkRateLimit(identifier);
   if (!rateLimit.allowed) {
     return jsonError(429, "Too many requests. Try again shortly.");
@@ -59,13 +59,17 @@ export async function POST(req: NextRequest) {
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  // Re-validates DNS resolution at real connect time (including across
+  // redirect hops) rather than trusting the one-time check above.
+  const dispatcher = createGuardedDispatcher();
 
   try {
     const response = await fetch(targetUrl, {
       signal: controller.signal,
       redirect: "follow",
       headers: { Accept: "text/csv, text/plain, */*" },
-    });
+      dispatcher,
+    } as RequestInit & { dispatcher: unknown });
 
     if (!response.ok) {
       if (sheetsExportUrl && response.status === 403) {

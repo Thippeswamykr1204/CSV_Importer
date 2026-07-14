@@ -1,5 +1,5 @@
 /**
- * Domain model for GrowEasy CRM records.
+ * Domain model for ImportCSV Pro CRM records.
  *
  * This is the single source of truth for the target shape. Every layer
  * (AI schema, validators, services, UI) derives from these constants so
@@ -26,7 +26,7 @@ export const DATA_SOURCE_VALUES = [
 export type DataSource = (typeof DATA_SOURCE_VALUES)[number];
 
 /**
- * A single row in the GrowEasy CRM target format.
+ * A single row in the ImportCSV Pro CRM target format.
  * Every field except `name` is nullable — the AI is instructed to leave
  * a field blank rather than guess when it isn't confident.
  */

@@ -2,7 +2,7 @@
 
 import type { ImportStats } from "@/lib/types/crm";
 
-const STORAGE_KEY = "groweasy.import-history.v1";
+const STORAGE_KEY = "ImportCSV Pro.import-history.v1";
 const MAX_ENTRIES = 20;
 
 export interface ImportHistoryEntry {

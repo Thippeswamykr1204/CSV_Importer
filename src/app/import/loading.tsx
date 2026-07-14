@@ -15,7 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function Loading() {
   return (
     <div className="flex-1 flex flex-col" aria-busy="true" aria-live="polite">
-      <span className="sr-only">Loading GrowEasy CSV Importer…</span>
+      <span className="sr-only">Loading ImportCSV Pro…</span>
 
       {/* Header skeleton — matches the real <header> exactly */}
       <div className="border-b border-border">

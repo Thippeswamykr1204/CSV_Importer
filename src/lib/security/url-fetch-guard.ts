@@ -1,5 +1,6 @@
 import { lookup } from "node:dns/promises";
 import net from "node:net";
+import { Agent } from "undici";
 
 /**
  * Server-Side Request Forgery guard.
@@ -72,6 +73,46 @@ export async function assertSafeRemoteUrl(rawUrl: string): Promise<UrlGuardResul
   }
 
   return { allowed: true };
+}
+
+/**
+ * Node-`dns.lookup`-shaped resolver used as the `connect.lookup` hook
+ * for the undici dispatcher below. Re-validates the resolved address at
+ * actual connect time (including on every redirect hop, since undici
+ * re-runs the dispatcher's connector per-request), so a DNS record that
+ * was safe when `assertSafeRemoteUrl` first ran but has since been
+ * rebound to an internal address is still caught.
+ */
+function guardedLookup(
+  hostname: string,
+  options: { family?: number | string },
+  callback: (err: NodeJS.ErrnoException | null, address: string, family: number) => void
+): void {
+  const family = typeof options.family === "number" ? options.family : 0;
+  lookup(hostname, { family })
+    .then(({ address, family }) => {
+      if (isBlockedIp(address)) {
+        const err = new Error(`Blocked network range: ${address}`) as NodeJS.ErrnoException;
+        callback(err, "", 0);
+        return;
+      }
+      callback(null, address, family);
+    })
+    .catch((err) => callback(err as NodeJS.ErrnoException, "", 0));
+}
+
+/**
+ * Builds the undici dispatcher passed to `fetch` so every TCP connection
+ * this request makes — including across redirects — is re-checked
+ * against the same IP-range rules as `assertSafeRemoteUrl`, rather than
+ * only the one-time check done before the initial request.
+ */
+export function createGuardedDispatcher(): Agent {
+  return new Agent({
+    connect: {
+      lookup: guardedLookup,
+    },
+  });
 }
 
 function isBlockedIp(ip: string): boolean {

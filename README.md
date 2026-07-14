@@ -1,4 +1,4 @@
-# GrowEasy CSV Importer
+# ImporterCSV Pro
 
 An AI-powered CSV importer that ingests a lead export from **any** system — HubSpot, Salesforce, Zoho, Facebook Lead Ads, Google Ads, a hand-built spreadsheet, whatever — and maps it into GrowEasy CRM's fixed schema without the user ever drawing a column-mapping line by hand.
 
@@ -46,7 +46,7 @@ tests/                       — vitest unit tests for the logic that actually m
 
 ### Why no database
 
-The assignment explicitly asks for a **stateless backend**, and the product doesn't need persistence to do its job: it's a one-shot transform (CSV in → CRM JSON out), not a system of record. Adding Postgres/Mongo here would be complexity with no corresponding user value. If GrowEasy later wants "recent imports" history across sessions/devices, that's an additive feature (see *Future improvements*), not a rearchitecture.
+The assignment explicitly asks for a **stateless backend**, and the product doesn't need persistence to do its job: it's a one-shot transform (CSV in → CRM JSON out), not a system of record. Adding Postgres/Mongo here would be complexity with no corresponding user value. If mportCSV Pro later wants "recent imports" history across sessions/devices, that's an additive feature (see *Future improvements*), not a rearchitecture.
 
 ### Why Server-Sent Events, not a single JSON response
 

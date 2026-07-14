@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function Loading() {
   return (
     <div className="flex-1 flex flex-col" aria-busy="true" aria-live="polite">
-      <span className="sr-only">Loading GrowEasy CSV Importer…</span>
+      <span className="sr-only">Loading ImportCSV Pro…</span>
 
       <div className="border-b border-border">
         <div className="mx-auto max-w-6xl px-6 h-14 flex items-center justify-between">

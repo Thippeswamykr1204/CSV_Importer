@@ -9,7 +9,7 @@ export async function GET() {
   return new Response(SAMPLE_CSV, {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": 'attachment; filename="groweasy-sample-leads.csv"',
+      "Content-Disposition": 'attachment; filename="ImportCSV Pro-sample-leads.csv"',
     },
   });
 }

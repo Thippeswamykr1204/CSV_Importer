@@ -108,7 +108,7 @@ export function ResultsTable({
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => exportImportedAsCsv(result.imported, `${baseName}-groweasy.csv`)}
+                onClick={() => exportImportedAsCsv(result.imported, `${baseName}-ImportCSV Pro.csv`)}
               >
                 <FileText className="size-3.5" />
                 CSV
@@ -116,7 +116,7 @@ export function ResultsTable({
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => exportImportedAsJson(result.imported, `${baseName}-groweasy.json`)}
+                onClick={() => exportImportedAsJson(result.imported, `${baseName}-ImportCSV Pro.json`)}
               >
                 <FileJson className="size-3.5" />
                 JSON

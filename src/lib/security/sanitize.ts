@@ -65,16 +65,41 @@ export function sanitizeRowForPrompt(
  * Node process still benefits from guarding against burst abuse within
  * its own lifetime. In a multi-instance deployment this should be
  * backed by Redis/Upstash — noted in the README as a scaling follow-up.
+ *
+ * Pruning on access alone isn't enough to bound memory: an identifier
+ * that hits once and never comes back would sit in the map forever,
+ * since nothing ever calls checkRateLimit for it again to trigger a
+ * prune. A background sweep runs every window to drop any identifier
+ * whose timestamps have all aged out, so a burst of one-off/spoofed
+ * identifiers (each used for a single request) doesn't leak memory for
+ * the life of the process.
  */
 const WINDOW_MS = 60_000;
 const MAX_REQUESTS_PER_WINDOW = 10;
 const hits = new Map<string, number[]>();
+
+function sweepExpired(): void {
+  const now = Date.now();
+  for (const [identifier, timestamps] of hits) {
+    const remaining = timestamps.filter((t) => now - t < WINDOW_MS);
+    if (remaining.length === 0) {
+      hits.delete(identifier);
+    } else if (remaining.length !== timestamps.length) {
+      hits.set(identifier, remaining);
+    }
+  }
+}
+
+const sweepTimer = setInterval(sweepExpired, WINDOW_MS);
+// Don't let this background timer keep a serverless/test process alive.
+sweepTimer.unref?.();
 
 export function checkRateLimit(identifier: string): { allowed: boolean; retryAfterMs?: number } {
   const now = Date.now();
   const timestamps = (hits.get(identifier) ?? []).filter((t) => now - t < WINDOW_MS);
 
   if (timestamps.length >= MAX_REQUESTS_PER_WINDOW) {
+    hits.set(identifier, timestamps);
     const oldest = timestamps[0];
     return { allowed: false, retryAfterMs: WINDOW_MS - (now - oldest) };
   }
@@ -82,4 +107,27 @@ export function checkRateLimit(identifier: string): { allowed: boolean; retryAft
   timestamps.push(now);
   hits.set(identifier, timestamps);
   return { allowed: true };
+}
+
+/**
+ * Best-effort client identifier for rate limiting.
+ *
+ * `x-forwarded-for` is client-suppliable on a direct request and can't
+ * be cryptographically trusted — a determined attacker can rotate it
+ * per request to dodge the limiter entirely. On Vercel/most reverse
+ * proxies the *first* entry in the (possibly comma-separated) header is
+ * the original client as seen by the edge, so we use that rather than
+ * the raw header value, which is the best available signal without
+ * adding an edge-config/IP-header allowlist. This is intentionally a
+ * soft control (documented above as needing Redis/Upstash for real
+ * multi-instance enforcement) — not a substitute for auth-based limits
+ * on any route that ends up needing stronger guarantees.
+ */
+export function getClientIdentifier(headers: Headers): string {
+  const forwardedFor = headers.get("x-forwarded-for");
+  if (forwardedFor) {
+    const first = forwardedFor.split(",")[0]?.trim();
+    if (first) return first;
+  }
+  return headers.get("x-real-ip")?.trim() || "anonymous";
 }

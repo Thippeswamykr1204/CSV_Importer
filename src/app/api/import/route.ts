@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { randomUUID } from "crypto";
 import { importRequestSchema, UPLOAD_LIMITS } from "@/lib/validators/schemas";
 import { runImportPipeline } from "@/lib/services/import.service";
-import { checkRateLimit } from "@/lib/security/sanitize";
+import { checkRateLimit, getClientIdentifier } from "@/lib/security/sanitize";
 import { getEnv } from "@/lib/utils/env";
 import type { ImportStage, ImportStreamEvent } from "@/lib/types/crm";
 
@@ -36,7 +36,7 @@ const MAX_REQUEST_BODY_BYTES = 15 * 1024 * 1024; // 15MB — headroom over the 8
  */
 export async function POST(req: NextRequest) {
   const requestId = randomUUID();
-  const identifier = req.headers.get("x-forwarded-for") ?? "anonymous";
+  const identifier = getClientIdentifier(req.headers);
 
   const rateLimit = checkRateLimit(identifier);
   if (!rateLimit.allowed) {

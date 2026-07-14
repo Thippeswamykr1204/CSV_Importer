@@ -1,32 +1,76 @@
 import type { AiBatchItem } from "@/lib/validators/schemas";
 import type { CrmRecord, MappedRecord, SkippedRecord } from "@/lib/types/crm";
+import { CRM_FIELDS } from "@/lib/types/crm";
 
 /**
- * The AI is instructed to skip rows with no email/phone and to enforce
- * the enum constraints — but we never trust an LLM as the sole
- * enforcement point for a business rule. This layer re-validates the
- * hard constraints deterministically so a prompt regression or a model
- * hiccup can't silently violate them.
+ * Deterministic re-enforcement of business rules on top of the AI's
+ * output (see README §6). The model is instructed to already apply
+ * these rules, but a hard business rule should never rely solely on an
+ * LLM following instructions — this is the ground-truth check.
  */
+
+export type NormalizeOutcome =
+  | { kind: "imported"; record: MappedRecord }
+  | { kind: "skipped"; record: SkippedRecord };
+
+const DEFAULT_SKIP_REASON = "No email or phone number found for this row.";
+
+function isBlank(value: string | null | undefined): boolean {
+  return value === null || value === undefined || value.trim().length === 0;
+}
+
+function trimField(value: string | null): string | null {
+  if (value === null) return null;
+  const trimmed = value.trim();
+  return trimmed.length === 0 ? null : trimmed;
+}
+
+function trimRecord(record: CrmRecord): CrmRecord {
+  const trimmed = { ...record };
+  for (const field of CRM_FIELDS) {
+    const value = trimmed[field];
+    if (typeof value === "string") {
+      (trimmed as Record<string, unknown>)[field] = trimField(value);
+    }
+  }
+  return trimmed;
+}
+
+function clampConfidence(confidence: number): number {
+  if (Number.isNaN(confidence)) return 0;
+  return Math.min(1, Math.max(0, confidence));
+}
+
 export function normalizeBatchItem(
   item: AiBatchItem,
   raw: Record<string, unknown>
-): { kind: "imported"; record: MappedRecord } | { kind: "skipped"; record: SkippedRecord } {
+): NormalizeOutcome {
   const record = trimRecord(item.record);
-  const hasEmail = Boolean(record.email && record.email.trim().length > 0);
-  const hasMobile = Boolean(
-    record.mobile_without_country_code && record.mobile_without_country_code.trim().length > 0
-  );
 
-  if (item.skip || (!hasEmail && !hasMobile)) {
+  const hasEmail = !isBlank(record.email);
+  const hasPhone = !isBlank(record.mobile_without_country_code);
+
+  // The AI is told to skip when there's no email/phone, but this rule
+  // is too important to trust to the model alone — re-check it here
+  // regardless of what `item.skip` says.
+  if (!hasEmail && !hasPhone) {
     return {
       kind: "skipped",
       record: {
         rowIndex: item.rowIndex,
         raw,
-        reason:
-          item.skipReason?.trim() ||
-          "Record has neither an email address nor a phone number.",
+        reason: item.skip ? item.skipReason ?? DEFAULT_SKIP_REASON : DEFAULT_SKIP_REASON,
+      },
+    };
+  }
+
+  if (item.skip) {
+    return {
+      kind: "skipped",
+      record: {
+        rowIndex: item.rowIndex,
+        raw,
+        reason: item.skipReason ?? DEFAULT_SKIP_REASON,
       },
     };
   }
@@ -36,24 +80,8 @@ export function normalizeBatchItem(
     record: {
       rowIndex: item.rowIndex,
       record,
-      confidence: clamp01(item.confidence),
+      confidence: clampConfidence(item.confidence),
       warnings: item.warnings,
     },
   };
-}
-
-function trimRecord(record: CrmRecord): CrmRecord {
-  const out = { ...record };
-  for (const key of Object.keys(out) as (keyof CrmRecord)[]) {
-    const value = out[key];
-    if (typeof value === "string") {
-      const trimmed = value.trim();
-      (out as Record<string, string | null>)[key] = trimmed.length > 0 ? trimmed : null;
-    }
-  }
-  return out;
-}
-
-function clamp01(n: number): number {
-  return Math.min(1, Math.max(0, n));
 }

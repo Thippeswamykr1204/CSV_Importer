@@ -246,9 +246,7 @@ export default function Home() {
             <div className="flex size-6 items-center justify-center rounded-[6px] bg-accent">
               <Zap className="size-3.5 text-white" fill="white" strokeWidth={0} />
             </div>
-            <span className="text-[13px] font-semibold tracking-tight">GrowEasy</span>
-            <span className="text-[13px] text-muted-2">/</span>
-            <span className="text-[13px] text-muted">CSV Importer</span>
+            <span className="text-[13px] font-semibold tracking-tight">ImportCSV Pro</span>
           </Link>
           <div className="flex items-center gap-4">
             <button

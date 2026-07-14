@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, GoogleGenerativeAIFetchError } from "@google/generative-ai";
 import { buildBatchPrompt } from "@/lib/ai/prompt-builder";
 import { repairAndParseJson } from "@/lib/ai/json-repair";
 import { aiBatchResponseSchema, type AiBatchItem } from "@/lib/validators/schemas";
@@ -9,6 +9,17 @@ import type { Batch } from "@/lib/services/batch.service";
 const MODEL_NAME = "gemini-2.5-flash";
 const MAX_RETRIES = 3;
 const BASE_BACKOFF_MS = 800;
+/**
+ * Per-attempt timeout for a single generateContent call. Without this,
+ * a hung request has no external bound: the SDK's own default is
+ * generous (minutes), so a single stalled batch could tie up a worker
+ * slot in mapAllBatches's concurrency pool indefinitely, starving every
+ * other batch waiting behind it. 20s is comfortably above normal
+ * latency for a 25-row batch at this model, while still failing fast
+ * enough that the retry loop below gets a chance to try again instead
+ * of the whole import silently stalling.
+ */
+const REQUEST_TIMEOUT_MS = 20_000;
 
 export interface RawRow {
   rowIndex: number;
@@ -35,6 +46,29 @@ function getClient(): GoogleGenerativeAI {
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Decides whether an error is worth retrying.
+ *
+ * Retryable: rate limits (429), server-side hiccups (5xx), transient
+ * network failures, and malformed-model-output errors (a fresh sample
+ * can come back well-formed). Non-retryable: bad/missing API key
+ * (401/403) and invalid request shape (400) — these fail the exact same
+ * way every time, so retrying just burns attempts and backoff time
+ * before reporting the same error anyway.
+ */
+function isRetryableError(err: unknown): boolean {
+  if (err instanceof GoogleGenerativeAIFetchError) {
+    const status = err.status;
+    if (status === undefined) return true; // unknown shape — assume transient
+    if (status === 429) return true;
+    if (status >= 500) return true;
+    return false; // 4xx (bad key, bad request, etc.) — won't fix itself
+  }
+  // Everything else (our own JSON/schema errors, network TypeErrors,
+  // DNS failures) is treated as transient.
+  return true;
 }
 
 /**
@@ -68,10 +102,13 @@ export async function mapBatch(
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
-      const result = await model.generateContent({
-        contents: [{ role: "user", parts: [{ text: user }] }],
-        systemInstruction: { role: "system", parts: [{ text: system }] },
-      });
+      const result = await model.generateContent(
+        {
+          contents: [{ role: "user", parts: [{ text: user }] }],
+          systemInstruction: { role: "system", parts: [{ text: system }] },
+        },
+        { timeout: REQUEST_TIMEOUT_MS }
+      );
 
       const text = result.response.text();
       const parsed = repairAndParseJson(text);
@@ -92,6 +129,17 @@ export async function mapBatch(
       return { batchIndex: batch.index, items, retries: attempt, failed: false };
     } catch (err) {
       lastError = err instanceof Error ? err.message : String(err);
+
+      if (!isRetryableError(err)) {
+        return {
+          batchIndex: batch.index,
+          items: [],
+          retries: attempt,
+          failed: true,
+          errorMessage: lastError,
+        };
+      }
+
       if (attempt < MAX_RETRIES) {
         await sleep(BASE_BACKOFF_MS * 2 ** attempt);
         continue;

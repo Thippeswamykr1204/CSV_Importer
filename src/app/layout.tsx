@@ -3,9 +3,9 @@ import { Toaster } from "sonner";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "CSV Importer · GrowEasy CRM",
+  title: "ImportCSV Pro",
   description:
-    "AI-powered CSV importer that understands any lead export and maps it into GrowEasy CRM automatically.",
+    "AI-powered CSV importer that understands any lead export and maps it into ImportCSV Pro CRM automatically.",
 };
 
 export default function RootLayout({

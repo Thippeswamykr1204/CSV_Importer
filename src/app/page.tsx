@@ -147,9 +147,7 @@ export default function LandingPage() {
             <div className="flex size-6 items-center justify-center rounded-[6px] bg-accent">
               <Zap className="size-3.5 text-white" fill="white" strokeWidth={0} />
             </div>
-            <span className="text-[13px] font-semibold tracking-tight">GrowEasy</span>
-            <span className="text-[13px] text-muted-2">/</span>
-            <span className="text-[13px] text-muted">CSV Importer</span>
+            <span className="text-[13px] font-semibold tracking-tight">ImportCSV Pro</span>
           </div>
 
           <nav className="hidden sm:flex items-center gap-6">
@@ -190,9 +188,7 @@ export default function LandingPage() {
             </h1>
 
             <p className="mt-5 text-[14.5px] text-muted max-w-md leading-relaxed">
-              Upload a CSV from any system — GrowEasy infers what every column means and maps it
-              straight into your CRM schema. No template, no per-source setup, no manual mapping
-              screen.
+              Upload a CSV from any system — ImportCSV Pro infers what every column means and maps it straight into your CRM schema. No template, no per-source setup, no manual mapping screen.
             </p>
 
             <div className="mt-8 flex items-center gap-3">
@@ -422,13 +418,13 @@ export default function LandingPage() {
             <div className="flex size-6 items-center justify-center rounded-[6px] bg-accent">
               <Zap className="size-3.5 text-white" fill="white" strokeWidth={0} />
             </div>
-            <span className="text-[13px] text-muted">GrowEasy CSV Importer — AI mapping, sanitized exports, retryable by design.</span>
+            <span className="text-[13px] text-muted">ImportCSV Pro — AI mapping, sanitized exports, retryable by design.</span>
           </div>
           <div className="flex sm:justify-end items-center gap-4 text-[12.5px]">
-            <a href="https://github.com" className="text-muted hover:text-foreground transition-colors">
+            <a href="https://github.com/Thippeswamykr1204" className="text-muted hover:text-foreground transition-colors">
               GitHub
             </a>
-            <a href="https://linkedin.com" className="text-muted hover:text-foreground transition-colors">
+            <a href="https://www.linkedin.com/in/thippeswamy-kr" className="text-muted hover:text-foreground transition-colors">
               LinkedIn
             </a>
           </div>
