@@ -35,7 +35,7 @@ export function InlineAlert({ message, onDismiss, className }: InlineAlertProps)
         <button
           onClick={onDismiss}
           aria-label="Dismiss error"
-          className="text-danger/70 hover:text-danger shrink-0"
+          className="text-danger/70 hover:text-danger shrink-0 cursor-pointer"
         >
           <X className="size-3.5" />
         </button>

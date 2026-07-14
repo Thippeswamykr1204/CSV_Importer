@@ -282,7 +282,7 @@ function SkippedTable({
                   <button
                     onClick={() => setEditingRow(null)}
                     aria-label="Cancel correction"
-                    className="text-muted hover:text-foreground"
+                    className="text-muted hover:text-foreground cursor-pointer"
                   >
                     <X className="size-4" />
                   </button>

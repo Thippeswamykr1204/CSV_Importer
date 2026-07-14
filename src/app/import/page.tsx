@@ -254,7 +254,7 @@ export default function Home() {
             <button
               type="button"
               onClick={() => setIsHistoryOpen(true)}
-              className="hidden sm:flex items-center gap-1.5 text-[12.5px] text-muted hover:text-foreground transition-colors"
+              className="hidden sm:flex items-center gap-1.5 text-[12.5px] text-muted hover:text-foreground transition-colors cursor-pointer"
             >
               <History className="size-3.5" />
               Import History
@@ -262,7 +262,7 @@ export default function Home() {
             <button
               type="button"
               onClick={() => setIsHelpOpen(true)}
-              className="hidden sm:flex items-center gap-1.5 text-[12.5px] text-muted hover:text-foreground transition-colors"
+              className="hidden sm:flex items-center gap-1.5 text-[12.5px] text-muted hover:text-foreground transition-colors cursor-pointer"
             >
               <HelpCircle className="size-3.5" />
               Help

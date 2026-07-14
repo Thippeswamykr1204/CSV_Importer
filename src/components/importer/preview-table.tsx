@@ -91,7 +91,7 @@ export function PreviewTable({ data, onConfirm, onReset, isSubmitting }: Preview
             className="flex-1 bg-transparent text-[13px] text-foreground placeholder:text-muted-2 outline-none"
           />
           {search && (
-            <button onClick={() => setSearch("")} aria-label="Clear search">
+            <button onClick={() => setSearch("")} aria-label="Clear search" className="cursor-pointer">
               <X className="size-3.5 text-muted-2 hover:text-foreground" />
             </button>
           )}

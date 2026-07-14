@@ -222,7 +222,7 @@ export function Dropzone({ onParsed }: DropzoneProps) {
         <button
           type="button"
           onClick={() => setUrlDialogMode("google-sheets")}
-          className="flex items-center justify-center gap-2 rounded-[var(--radius-md)] border border-border hover:border-border-hover bg-surface px-4 h-11 text-[13px] font-medium text-foreground transition-colors"
+          className="flex items-center justify-center gap-2 rounded-[var(--radius-md)] border border-border hover:border-border-hover bg-surface px-4 h-11 text-[13px] font-medium text-foreground transition-colors cursor-pointer"
         >
           <FileText className="size-4 text-muted" />
           Import from Google Sheets
@@ -230,7 +230,7 @@ export function Dropzone({ onParsed }: DropzoneProps) {
         <button
           type="button"
           onClick={() => setUrlDialogMode("generic-url")}
-          className="flex items-center justify-center gap-2 rounded-[var(--radius-md)] border border-border hover:border-border-hover bg-surface px-4 h-11 text-[13px] font-medium text-foreground transition-colors"
+          className="flex items-center justify-center gap-2 rounded-[var(--radius-md)] border border-border hover:border-border-hover bg-surface px-4 h-11 text-[13px] font-medium text-foreground transition-colors cursor-pointer"
         >
           <Link2 className="size-4 text-muted" />
           Import from URL

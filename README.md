@@ -124,7 +124,7 @@ The model self-reports a 0–1 confidence per row, explicitly defined in the pro
 
 ```bash
 npm install
-cp .env.example .env.local   # then add your GEMINI_API_KEY
+cp .env.example .env   # then add your GEMINI_API_KEY
 npm run dev
 ```
 

@@ -433,11 +433,6 @@ export default function LandingPage() {
             </a>
           </div>
         </div>
-        <div className="border-t border-border">
-          <div className="mx-auto max-w-6xl px-6 h-12 flex items-center justify-center text-[11px] text-muted-2">
-            Built as a portfolio project — not a live commercial product.
-          </div>
-        </div>
       </footer>
     </div>
   );

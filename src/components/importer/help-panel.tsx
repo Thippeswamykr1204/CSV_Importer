@@ -57,7 +57,7 @@ export function HelpPanel({ open, onClose }: HelpPanelProps) {
           <a
             href="/api/sample-csv"
             download
-            className="inline-flex items-center gap-1.5 text-[12.5px] font-medium text-accent hover:text-accent-hover"
+            className="inline-flex items-center gap-1.5 text-[12.5px] font-medium text-accent hover:text-accent-hover cursor-pointer"
           >
             <Download className="size-3.5" />
             Download a sample CSV to try it out
