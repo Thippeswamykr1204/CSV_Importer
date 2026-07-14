@@ -54,6 +54,7 @@ export function normalizeBatchItem(
   // is too important to trust to the model alone — re-check it here
   // regardless of what `item.skip` says.
   if (!hasEmail && !hasPhone) {
+    console.log("[DEBUG] Skipped — no email/phone. Raw record from AI:", record);
     return {
       kind: "skipped",
       record: {

@@ -124,11 +124,14 @@ export async function mapBatch(
         throw new Error(lastError);
       }
 
+      console.log("[DEBUG] AI batch items:", JSON.stringify(validation.data.items, null, 2));
+
       const items = reconcileWithBatch(validation.data.items, batch.rows);
 
       return { batchIndex: batch.index, items, retries: attempt, failed: false };
     } catch (err) {
       lastError = err instanceof Error ? err.message : String(err);
+      console.error(`[DEBUG] Batch ${batch.index} attempt ${attempt} failed:`, lastError);
 
       if (!isRetryableError(err)) {
         return {

@@ -109,6 +109,7 @@ export function ProgressStages({
                 strokeWidth="3"
                 strokeLinecap="round"
                 strokeDasharray={2 * Math.PI * 14}
+                initial={{ strokeDashoffset: 2 * Math.PI * 14 }}
                 animate={{ strokeDashoffset: 2 * Math.PI * 14 * (1 - progress / 100) }}
                 transition={{ duration: 0.4, ease: "easeOut" }}
               />
